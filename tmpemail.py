@@ -4,6 +4,8 @@ from one_sec_mail import OneSecMail
 
 TEMP_EMAIL_DIRECTORY = "/tmp/tmpemail"
 
+EMAIL_ADDRESS_FILE = TEMP_EMAIL_DIRECTORY + "/email_address"
+
 
 def print_domains():
     mail_service = OneSecMail()
@@ -27,15 +29,40 @@ def generate_email(email):
         else:
             exit(1)
         
+    save_email(email_address)
+    print(email_address)
 
+
+def save_email(email):
     # Create the temp email directory if it doesn't exist
     os.makedirs(TEMP_EMAIL_DIRECTORY, exist_ok=True)
 
-    with open(f"{TEMP_EMAIL_DIRECTORY}/email_address", "w") as f:
-        f.write(email_address)
+    with open(EMAIL_ADDRESS_FILE, "w") as f:
+        f.write(email)
 
-    print(email_address)
 
+def get_messages():
+    mail_service = OneSecMail()
+    email = get_email()
+
+    if email is None:
+        email = mail_service.get_random_email()
+        save_email(email)
+
+    messages = mail_service.get_messages(email)
+    print(f"[ Inbox for {email} ]\n")
+
+    for message in messages:
+        print(f"{message['id']}\t{message['from']}\t{message['subject']}")
+
+
+def get_email():
+    if not os.path.exists(EMAIL_ADDRESS_FILE):
+        return None
+    else:
+        with open(EMAIL_ADDRESS_FILE, "r") as f:
+            return f.readline()
+        
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -46,7 +73,10 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
+
     if args.domains:
         print_domains()
     elif args.generate:
         generate_email(args.generate)
+    else:
+        get_messages()

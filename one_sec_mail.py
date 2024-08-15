@@ -7,6 +7,8 @@ GET_DOMAINS_LIST_URL = BASE_URL + "?action=getDomainList"
 
 GET_RANDOM_EMAIL_URL = BASE_URL + "?action=genRandomMailbox&count=1"
 
+GET_MESSAGES_URL = BASE_URL + "?action=getMessages&login=[USER]&domain=[DOMAIN]"
+
 BANNED_USERS = ["abuse", "webmaster", "contact", "postmaster", "hostmaster", "admin"]
 
 SIMPLE_EMAIL_PREFIX_PATTERN = "[a-z0-9]+@"
@@ -16,20 +18,12 @@ class OneSecMail:
 
     def get_domains(self):
         response = requests.get(GET_DOMAINS_LIST_URL)
-
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception("Error getting domains list")
+        return response.json()
 
 
     def get_random_email(self):
         response = requests.get(GET_RANDOM_EMAIL_URL)
-
-        if response.status_code == 200:
-            return response.json()[0]
-        else:
-            raise Exception("Error getting random email")
+        return response.json()[0]
 
 
     def is_allowed_email(self, email):
@@ -55,3 +49,16 @@ class OneSecMail:
             return False
         else:
             return True
+
+    def get_messages(self, email):
+        user = email.split("@")[0]
+        domain = email.split("@")[1]
+
+        url = (GET_MESSAGES_URL
+            .replace("[USER]", user)
+            .replace("[DOMAIN]", domain))
+
+        return requests.get(url).json()
+        
+
+        
