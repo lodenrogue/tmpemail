@@ -9,6 +9,13 @@ EMAIL_ADDRESS_FILE = TEMP_EMAIL_DIRECTORY + "/email_address"
 
 TEMP_EMAIL_MESSAGE_FILE = TEMP_EMAIL_DIRECTORY + "/tmpemail.html"
 
+EMAIL_MESSAGE_TEMPLATE = """
+<pre><b>To: </b>[TO]
+<b>From: </b>[FROM]
+<b>Subject: </b>[SUBJECT]</pre>
+[HTML_BODY]
+"""
+
 
 def print_domains():
     mail_service = OneSecMail()
@@ -82,7 +89,11 @@ def get_message(message_id):
         subject = message["subject"]
         body = message["htmlBody"] if message["htmlBody"] else message["textBody"]
 
-        content = f"To: {to}\nFrom: {sender}\nSubject: {subject}\n{body}"
+        content = (EMAIL_MESSAGE_TEMPLATE
+                   .replace("[TO]", to)
+                   .replace("[FROM]", sender)
+                   .replace("[SUBJECT]", subject)
+                   .replace("[HTML_BODY]", body))
 
         with open(TEMP_EMAIL_MESSAGE_FILE, "w") as f:
             f.write(content)
