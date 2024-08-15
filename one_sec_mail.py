@@ -75,6 +75,3 @@ class OneSecMail:
     def split_email(self, email):
         split = email.split("@")
         return (split[0], split[1])
-        
-
-        
