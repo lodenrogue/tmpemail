@@ -1,10 +1,13 @@
 import argparse
 import os
+import subprocess
 from one_sec_mail import OneSecMail
 
 TEMP_EMAIL_DIRECTORY = "/tmp/tmpemail"
 
 EMAIL_ADDRESS_FILE = TEMP_EMAIL_DIRECTORY + "/email_address"
+
+TEMP_EMAIL_MESSAGE_FILE = TEMP_EMAIL_DIRECTORY + "/tmpemail.html"
 
 
 def print_domains():
@@ -62,12 +65,36 @@ def get_email():
     else:
         with open(EMAIL_ADDRESS_FILE, "r") as f:
             return f.readline()
-        
+
+
+def get_message(message_id):
+    mail_service = OneSecMail()
+
+    email = get_email()
+    message = mail_service.get_message(email, message_id)
+
+    if message == "Message not found":
+        print(message)
+        exit(1)
+    else:
+        to = email
+        sender = message["from"]
+        subject = message["subject"]
+        body = message["htmlBody"] if message["htmlBody"] else message["textBody"]
+
+        content = f"To: {to}\nFrom: {sender}\nSubject: {subject}\n{body}"
+
+        with open(TEMP_EMAIL_MESSAGE_FILE, "w") as f:
+            f.write(content)
+
+        subprocess.run(["w3m", TEMP_EMAIL_MESSAGE_FILE])
+
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--domains", help="print a list of available domains", action="store_true")
     parser.add_argument("-g", "--generate", help="generate a new email address", nargs="?", const="random")
+    parser.add_argument("message", help="id of email message to retrieve", nargs="?")
     return parser.parse_args()
 
 
@@ -78,5 +105,7 @@ if __name__ == '__main__':
         print_domains()
     elif args.generate:
         generate_email(args.generate)
+    elif args.message:
+        get_message(args.message)
     else:
         get_messages()

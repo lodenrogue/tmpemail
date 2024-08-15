@@ -7,7 +7,9 @@ GET_DOMAINS_LIST_URL = BASE_URL + "?action=getDomainList"
 
 GET_RANDOM_EMAIL_URL = BASE_URL + "?action=genRandomMailbox&count=1"
 
-GET_MESSAGES_URL = BASE_URL + "?action=getMessages&login=[USER]&domain=[DOMAIN]"
+GET_ALL_MESSAGES_URL = BASE_URL + "?action=getMessages&login=[USER]&domain=[DOMAIN]"
+
+GET_MESSAGE_URL = BASE_URL + "?action=readMessage&login=[USER]&domain=[DOMAIN]&id=[ID]"
 
 BANNED_USERS = ["abuse", "webmaster", "contact", "postmaster", "hostmaster", "admin"]
 
@@ -33,14 +35,13 @@ class OneSecMail:
             print("Error: Invalid email format")
             return False
 
-        user = email.split("@")[0]
+        user, domain = self.split_email(email)
 
         if user in BANNED_USERS:
             print(f"Error: User {user} not allowed")
             print(f"Banned users: {BANNED_USERS}")
             return False
 
-        domain = email.split("@")[1]
         domains = self.get_domains()
 
         if domain not in self.get_domains():
@@ -51,14 +52,29 @@ class OneSecMail:
             return True
 
     def get_messages(self, email):
-        user = email.split("@")[0]
-        domain = email.split("@")[1]
+        user, domain = self.split_email(email)
 
-        url = (GET_MESSAGES_URL
+        url = (GET_ALL_MESSAGES_URL
             .replace("[USER]", user)
             .replace("[DOMAIN]", domain))
 
         return requests.get(url).json()
+
+
+    def get_message(self, email, message_id):
+        user, domain = self.split_email(email)
+
+        url = (GET_MESSAGE_URL
+               .replace("[USER]", user)
+               .replace("[DOMAIN]", domain)
+               .replace("[ID]", message_id))
+        
+        return requests.get(url).json()
+
+
+    def split_email(self, email):
+        split = email.split("@")
+        return (split[0], split[1])
         
 
         
