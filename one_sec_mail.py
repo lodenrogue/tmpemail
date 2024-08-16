@@ -11,6 +11,8 @@ GET_ALL_MESSAGES_URL = BASE_URL + "?action=getMessages&login=[USER]&domain=[DOMA
 
 GET_MESSAGE_URL = BASE_URL + "?action=readMessage&login=[USER]&domain=[DOMAIN]&id=[ID]"
 
+ATTACHMENT_URL = BASE_URL + "https://www.1secmail.com/api/v1/?action=download&login=[USER]&domain=[DOMAIN]&id=[ID]&file=[FILENAME]"
+
 BANNED_USERS = ["abuse", "webmaster", "contact", "postmaster", "hostmaster", "admin"]
 
 SIMPLE_EMAIL_PREFIX_PATTERN = "[a-z0-9]+@"
@@ -69,7 +71,21 @@ class OneSecMail:
                .replace("[DOMAIN]", domain)
                .replace("[ID]", message_id))
         
-        return requests.get(url).json()
+        message = requests.get(url).json()
+        attachments = message["attachments"]
+
+        for attachment in attachments:
+            filename = attachment["filename"]
+
+            link = (ATTACHMENT_URL
+                    .replace("[USER]", user)
+                    .replace("[DOMAIN]", domain)
+                    .replace("[ID]", message_id)
+                    .replace("[FILENAME]", filename))
+
+            attachment["link"] = link
+
+        return message
 
 
     def split_email(self, email):

@@ -14,6 +14,7 @@ EMAIL_MESSAGE_TEMPLATE = """
 <b>From: </b>[FROM]
 <b>Subject: </b>[SUBJECT]</pre>
 [HTML_BODY]
+[ATTACHMENTS]
 """
 
 
@@ -84,21 +85,42 @@ def get_message(message_id):
         print(message)
         exit(1)
     else:
-        to = email
-        sender = message["from"]
-        subject = message["subject"]
-        body = message["htmlBody"] if message["htmlBody"] else message["textBody"]
-
-        content = (EMAIL_MESSAGE_TEMPLATE
-                   .replace("[TO]", to)
-                   .replace("[FROM]", sender)
-                   .replace("[SUBJECT]", subject)
-                   .replace("[HTML_BODY]", body))
+        content = create_body_html(email, message)
+        attachments = create_attachments_html(message)
+        content = content.replace("[ATTACHMENTS]", attachments)
 
         with open(TEMP_EMAIL_MESSAGE_FILE, "w") as f:
             f.write(content)
 
         subprocess.run(["w3m", TEMP_EMAIL_MESSAGE_FILE])
+
+
+def create_attachments_html(message):
+    html = ""
+    attachments = message["attachments"]
+
+    if attachments:
+        html = "<br><b>[Attachments]</b><br>"
+
+    for attachment in attachments:
+        link = attachment["link"]
+        filename = attachment["filename"]
+        html += f"<a href={link} download={filename}>{filename}</a><br>"
+
+    return html
+
+
+def create_body_html(email, message):
+    to = email
+    sender = message["from"]
+    subject = message["subject"]
+    body = message["htmlBody"] if message["htmlBody"] else message["textBody"]
+
+    return (EMAIL_MESSAGE_TEMPLATE
+            .replace("[TO]", to)
+            .replace("[FROM]", sender)
+            .replace("[SUBJECT]", subject)
+            .replace("[HTML_BODY]", body))
 
 
 def get_args():
