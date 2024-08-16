@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 from one_sec_mail import OneSecMail
+from url_shortener import UrlShortener
 
 TEMP_EMAIL_DIRECTORY = "/tmp/tmpemail"
 
@@ -70,7 +71,7 @@ def get_email():
             return f.readline()
 
 
-def get_message(message_id):
+def get_message(message_id, is_plain_text):
     mail_service = OneSecMail()
 
     email = get_email()
@@ -81,21 +82,29 @@ def get_message(message_id):
         exit(1)
     else:
         content = create_body_html(email, message)
-        attachments = create_attachments_html(message)
+
+        if is_plain_text:
+            attachments = create_attachments_plain_text(message)
+        else:
+            attachments = create_attachments_html(message)
+
         content = content.replace("[ATTACHMENTS]", attachments)
 
         with open(TEMP_EMAIL_MESSAGE_FILE, "w") as f:
             f.write(content)
 
-        subprocess.run(["w3m", TEMP_EMAIL_MESSAGE_FILE])
+        if is_plain_text:
+            subprocess.run(["w3m", "-dump", TEMP_EMAIL_MESSAGE_FILE])
+        else:
+            subprocess.run(["w3m", TEMP_EMAIL_MESSAGE_FILE])
 
 
-def open_recent():
+def open_recent(is_plain_text):
     messages = get_messages_from_service()
 
     if messages:
         message_id = str(messages[0]["id"])
-        get_message(message_id)
+        get_message(message_id, is_plain_text)
 
 
 def get_messages_from_service():
@@ -107,6 +116,21 @@ def get_messages_from_service():
         save_email(email)
 
     return mail_service.get_messages(email)
+
+
+def create_attachments_plain_text(message):
+    text = ""
+    attachments = message["attachments"]
+
+    if attachments:
+        text = "[Attachments]<br>"
+
+    for attachment in attachments:
+        link = UrlShortener().shorten(attachment["link"])
+        filename = attachment["filename"]
+        text += f"{link} [{filename}]<br>"
+
+    return text
 
 
 def create_attachments_html(message):
@@ -142,6 +166,7 @@ def get_args():
     parser.add_argument("-d", "--domains", help="print a list of available domains", action="store_true")
     parser.add_argument("-g", "--generate", help="generate a new email address", nargs="?", const="random")
     parser.add_argument("-r", "--recent", help="view the most recent email", action="store_true")
+    parser.add_argument("-t", "--text", help="view the email as plain text", action="store_true")
     parser.add_argument("message", help="id of email message to retrieve", nargs="?")
     return parser.parse_args()
 
@@ -154,8 +179,8 @@ if __name__ == '__main__':
     elif args.generate:
         generate_email(args.generate)
     elif args.recent:
-        open_recent()
+        open_recent(args.text)
     elif args.message:
-        get_message(args.message)
+        get_message(args.message, args.text)
     else:
         get_messages()
