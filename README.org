@@ -71,5 +71,7 @@ Instead of seeing the email in html you may want to view it in plain
 text
 
 #+begin_src shell
-  python tmpemail.py -t
+  python tmpemail.py -t message-id
 #+end_src
+
+This also works in combination with -r
