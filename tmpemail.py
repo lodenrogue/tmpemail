@@ -53,14 +53,9 @@ def save_email(email):
 
 
 def get_messages():
-    mail_service = OneSecMail()
     email = get_email()
+    messages = get_messages_from_service()
 
-    if email is None:
-        email = mail_service.get_random_email()
-        save_email(email)
-
-    messages = mail_service.get_messages(email)
     print(f"[ Inbox for {email} ]\n")
 
     for message in messages:
@@ -95,6 +90,25 @@ def get_message(message_id):
         subprocess.run(["w3m", TEMP_EMAIL_MESSAGE_FILE])
 
 
+def open_recent():
+    messages = get_messages_from_service()
+
+    if messages:
+        message_id = str(messages[0]["id"])
+        get_message(message_id)
+
+
+def get_messages_from_service():
+    mail_service = OneSecMail()
+    email = get_email()
+
+    if email is None:
+        email = mail_service.get_random_email()
+        save_email(email)
+
+    return mail_service.get_messages(email)
+
+
 def create_attachments_html(message):
     html = ""
     attachments = message["attachments"]
@@ -127,6 +141,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--domains", help="print a list of available domains", action="store_true")
     parser.add_argument("-g", "--generate", help="generate a new email address", nargs="?", const="random")
+    parser.add_argument("-r", "--recent", help="view the most recent email", action="store_true")
     parser.add_argument("message", help="id of email message to retrieve", nargs="?")
     return parser.parse_args()
 
@@ -138,6 +153,8 @@ if __name__ == '__main__':
         print_domains()
     elif args.generate:
         generate_email(args.generate)
+    elif args.recent:
+        open_recent()
     elif args.message:
         get_message(args.message)
     else:
