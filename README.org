@@ -1,0 +1,60 @@
+* tmpemail - Temporary Email
+This application provides a temporary email service with a
+terminal-based interface. It wraps around the [[https://www.1secmail.com/][1secMail]] service and can
+be used either as a standalone module or a command-line utility.
+
+The application uses w3m to render HTML content within the terminal,
+and it supports downloading attachments from emails.
+
+** Dependencies
+- w3m
+- requests
+
+You can install requests using:
+
+#+begin_src shell
+  pip install -r requirements.txt
+#+end_src
+
+To install w3m you can use Homebrew or your favorite package manager.
+
+** Usage
+*** Create a random email address:
+#+begin_src shell
+  python tmpemail.py
+#+end_src
+
+This will create a random email if one has not been created already.
+
+*** Create a specific email address:
+#+begin_src shell
+  python tmpemail.py -g example@1secmail.com
+#+end_src
+
+You must use one of the allowed domains
+
+*** List allowed domains:
+#+begin_src shell
+  python tmpemail.py -d
+#+end_src
+
+This will return a list of domains which are available to use.
+
+*** View email inbox
+#+begin_src shell
+  python tmpemail.py
+#+end_src
+
+It will retrieve the inbox for the email address created in one of the
+previous steps or create a random email address and retrieve it's
+inbox.
+
+Messages in the inbox include an id, sender email address, and
+subject.
+
+*** View email message
+#+begin_src shell
+  python tmpemail.py 103607574
+#+end_src
+
+where 103607574 is the id of the message you want to read.
