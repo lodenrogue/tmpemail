@@ -58,3 +58,18 @@ subject.
 #+end_src
 
 where 103607574 is the id of the message you want to read.
+
+*** View most recent message
+#+begin_src shell
+  python tmpemail.py -r
+#+end_src
+
+This will display the most recent message.
+
+*** View the message in plain text
+Instead of seeing the email in html you may want to view it in plain
+text
+
+#+begin_src shell
+  python tmpemail.py -t
+#+end_src
